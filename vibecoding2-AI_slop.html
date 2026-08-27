@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Portfolio UI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0b1a30 0%, #00439c 50%, #00112c 100%);
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background 0.6s ease;
+        }
+
+        .bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* GÓRNY PASEK */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 50px;
+            z-index: 10;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .top-bar .left-info, .top-bar .right-info {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #0072ce;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px solid #fff;
+        }
+
+        #clock {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* SEKCJA GŁÓWNA */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding-left: 80px;
+            padding-right: 80px;
+            z-index: 10;
+        }
+
+        .category-title {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .tiles-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 35px;
+        }
+
+        .tile {
+            min-width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .tile i {
+            font-size: 50px;
+            color: #fff;
+            transition: transform 0.3s ease;
+        }
+
+        .tile.active {
+            transform: scale(1.15);
+            border-color: #ffffff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.6), 0 15px 30px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.25);
+            z-index: 20;
+        }
+
+        .tile-label {
+            position: absolute;
+            bottom: -30px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .tile.active .tile-label {
+            opacity: 1;
+            color: #4bacff;
+        }
+
+        /* PANEL SZCZEGÓŁÓW (ROZWIJANA LISTA) */
+        .details-panel {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 25px 35px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 800px;
+            min-height: 200px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .details-panel h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #4bacff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .details-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .details-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #0072ce;
+        }
+
+        .details-list li i {
+            margin-top: 3px;
+            color: #4bacff;
+        }
+
+        /* DOLNY PASEK */
+        .bottom-bar {
+            padding: 20px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+        }
+
+        .nav-hint {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-overlay"></div>
+
+    <!-- GÓRNY PASEK -->
+    <div class="top-bar">
+        <div class="left-info">
+            <div><i class="fa-solid fa-code"></i> Portfolio Interaktywne</div>
+        </div>
+        <div class="right-info">
+            <div class="avatar">JS</div>
+            <span>Jan Kowalski</span>
+            <div id="clock">00:00</div>
+        </div>
+    </div>
+
+    <!-- KAFELKI ORAZ ROZWIJANA LISTA -->
+    <div class="main-content">
+        <div class="category-title" id="active-title">Osiągnięcia Sportowe</div>
+        
+        <div class="tiles-container">
+            <div class="tile active" data-id="sports" data-bg="linear-gradient(135deg, #0d3b66, #00439c)" data-title="Osiągnięcia Sportowe">
+                <i class="fa-solid fa-trophy"></i>
+                <span class="tile-label">Sport</span>
+            </div>
+
+            <div class="tile" data-id="work" data-bg="linear-gradient(135deg, #1b263b, #415a77)" data-title="Doświadczenie Zawodowe">
+                <i class="fa-solid fa-briefcase"></i>
+                <span class="tile-label">Kariera</span>
+            </div>
+
+            <div class="tile" data-id="future" data-bg="linear-gradient(135deg, #053736, #11998e)" data-title="Plany na Przyszłość">
+                <i class="fa-solid fa-seedling"></i>
+                <span class="tile-label">Rozwój</span>
+            </div>
+        </div>
+
+        <!-- PANEL SZCZEGÓŁÓW -->
+        <div class="details-panel" id="details-panel">
+            <!-- Zawartość generowana przez JS -->
+        </div>
+    </div>
+
+    <!-- DOLNY PASEK -->
+    <div class="bottom-bar">
+        <div class="nav-hint">
+            Użyj strzałek ◄ ► na klawiaturze (lub klikaj myszką), aby zmieniać kafelki
+        </div>
+    </div>
+
+    <script>
+        // ZEGAR
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = 
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // DANE DO KAFELKÓW
+        const contentData = {
+            sports: {
+                title: "Osiągnięcia Sportowe",
+                icon: "fa-trophy",
+                items: [
+                    "<strong>Ukończenie Maratonu Warszawskiego</strong> – Czas: 3h 45m (wymagało 6 miesięcy dyscypliny i regularnych treningów).",
+                    "<strong>I miejsce w lokalnym turnieju badmintona</strong> – Wygrana w kategorii amatorów po 5 zaciętych meczach.",
+                    "<strong>Korona Gór Polskich (w trakcie)</strong> – Zdobyte 18 z 28 najwższych szczytów w Polsce.",
+                    "<strong>Regularność treningowa</strong> – Ponad 1200 km przebiegniętych w minionym roku."
+                ]
+            },
+            work: {
+                title: "Doświadczenie Zawodowe",
+                icon: "fa-briefcase",
+                items: [
+                    "<strong>Frontend Developer (2024 - obecnie)</strong> – Tworzenie dynamicznych interfejsów webowych w HTML, CSS i JavaScript.",
+                    "<strong>Specjalista ds. Wsparcia IT (2022 - 2024)</strong> – Konfiguracja sieci, zarządzanie serwerami lokalnymi i pomoc technicznym użytkownikom.",
+                    "<strong>Stażysta Web Development (2021)</strong> – Optymalizacja szybkości stron WWW, praca z systemami CMS oraz podstawy SEO."
+                ]
+            },
+            future: {
+                title: "Plany na Przyszłość",
+                icon: "fa-seedling",
+                items: [
+                    "<strong>Chęć rozwijania się w technologiach OZE</strong> – Tworzenie oprogramowania do monitorowania i optymalizacji zużycia energii z odnawialnych źródeł (Smart Grids / Fotowoltaika).",
+                    "<strong>Naukowe opanowanie Node.js & React</strong> – Rozbudowa umiejętności programistycznych w stronę architektury Full-Stack.",
+                    "<strong>Certyfikacja Chmurowa (AWS / Azure)</strong> – Zdobycie certyfikatu architekta rozwiązań chmurowych wspierających zieloną transformację."
+                ]
+            }
+        };
+
+        const tiles = document.querySelectorAll('.tile');
+        const activeTitle = document.getElementById('active-title');
+        const detailsPanel = document.getElementById('details-panel');
+        let currentIndex = 0;
+
+        function updateSelection(index) {
+            tiles.forEach((tile, i) => {
+                if (i === index) {
+                    tile.classList.add('active');
+                    
+                    // Tło i tytuł
+                    document.body.style.background = tile.getAttribute('data-bg');
+                    const dataId = tile.getAttribute('data-id');
+                    const data = contentData[dataId];
+                    
+                    activeTitle.textContent = data.title;
+
+                    // Generowanie listy w panelu
+                    detailsPanel.innerHTML = `
+                        <h3><i class="fa-solid ${data.icon}"></i> ${data.title}</h3>
+                        <ul class="details-list">
+                            ${data.items.map(item => `<li><i class="fa-solid fa-circle-check"></i> <div>${item}</div></li>`).join('')}
+                        </ul>
+                    `;
+
+                    // Reset animacji panelu
+                    detailsPanel.style.animation = 'none';
+                    detailsPanel.offsetHeight; // trigger reflow
+                    detailsPanel.style.animation = 'fadeIn 0.4s ease-in-out';
+
+                } else {
+                    tile.classList.remove('active');
+                }
+            });
+        }
+
+        // Kliknięcie myszką
+        tiles.forEach((tile, index) => {
+            tile.addEventListener('click', () => {
+                currentIndex = index;
+                updateSelection(currentIndex);
+            });
+        });
+
+        // Klawiatura
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (currentIndex < tiles.length - 1) {
+                    currentIndex++;
+                    updateSelection(currentIndex);
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateSelection(currentIndex);
+                }
+            }
+        });
+
+        // Inicjalizacja pierwszego kafelka
+        updateSelection(0);
+    </script>
+</body>
+</html>
